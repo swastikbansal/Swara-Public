@@ -1,17 +1,20 @@
-#Libraries for GUI
+# Libraries for creating GUI
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 
 # Canvas For imposing matplotlib graph with tkinter gui.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  
+
+# Libraries for recording voice and processing
 import pyaudio
 import wave
 import os
 
-#Importing Custom Files
+# Importing Custom Files
 import Swara_Backend
 import Swara_Database
+
 
 #Function for clearing Win
 def clearWin(window):
@@ -37,6 +40,7 @@ def recording(sec_e):
         CHANNELS = 1
         RATE = 16000
 
+        # Calling Python library to record audio
         audio = pyaudio.PyAudio()
 
         record = audio.open(
@@ -51,6 +55,7 @@ def recording(sec_e):
         ch2 = Label(win_root , text= "Your voice is Recorded!" , bg="paleturquoise" ,font= ("Posterama  16 bold"))
         ch2.place(x= 140 , y = 220)
 
+        # Defines recording interval by taking input from user.
         seconds = float(sec)
         frames = []
         second_tracking = 0
@@ -68,6 +73,7 @@ def recording(sec_e):
         record.close()
         audio.terminate()
 
+        # Stores recorded audio file
         specimen = wave.open('Audio/user.wav', 'wb')
         specimen.setnchannels(CHANNELS)
         specimen.setsampwidth(audio.get_sample_size(FORMAT))
@@ -111,9 +117,10 @@ def loginWin():
         #Create User Button
         c_user_b = Button(win_root, fg = "red", text = "Sign - Up", font = " raleway 12 bold" ,command= createUserWin)
         c_user_b.place(x = 30, y = 130)
-        
+
+# Message box
 def createUserWin():
-        messagebox.showinfo("Work In Progress","This Section Of Program is Work in Progress")
+        messagebox.showinfo("Work In Progress","This Section of Program is still Work in Progress")
         
 #-----------------Choose option window---------------#
 def chooseWin():
@@ -230,7 +237,7 @@ def graphWin():
         
         #Configuring Main Window
         clearWin(win_root)
-        win_root.geometry("1400x700") 
+        win_root.geometry("1500x700") 
         win_root.configure(bg="paleturquoise")
         win_root.title("Graph Input")
 
@@ -242,6 +249,7 @@ def graphWin():
         grp_text=Label(grp_h_fr, text="GRAPH" , bg="paleturquoise" , fg = "red", font= ("Posterama  40"), pady= 10)
         grp_text.pack()
         
+        #Label to show which file has higher pitch
         result_text = Label(win_root, text="" , bg="paleturquoise" ,fg = "green",  font= ("Posterama  20"))
         result_text.pack()               
 
@@ -266,7 +274,7 @@ def graphWin():
                
         # Creating Close Button    
         log_b = Button(win_root, fg="red", text = "CLOSE"  ,font = "raleway 12 bold", command = ackWin)
-        log_b.place(x=680, y=660)
+        log_b.place(x=860, y=660)
 
 # ---------------------- Acknowledgement Window ----------------------------------
 def ackWin():
@@ -278,14 +286,16 @@ def ackWin():
         ack_h_fr = Frame(win_root, bg="paleturquoise")
         ack_h_fr.pack( fill=X)
         
-        
-        messagebox.showinfo("Work In progress","This Program is still under development.")
 
         # Thank You Label for Acknowledgement Window
         thanks_l = Label(ack_h_fr, text="Thank You!!!\n\n\nFor using our software." , 
                          bg="paleturquoise", fg="red", font=("Posterama  20") , pady =60)
         thanks_l.pack()
-                
+
+        # Message box
+        messagebox.showinfo("Work In progress","This Program is still under development.")    
+
+
 # --------------- Main Window --------------------- #
 
 
@@ -322,5 +332,5 @@ start_b = Button(win_root, text = "START",font = " arial 20 bold", width = 10, h
                   ,fg="red" , command =  loginWin)
 start_b.place(x = 230,y = 380,anchor='center')
 
-
+# Creates a loop. To re-execute tkinter gui again and again.
 win_root.mainloop()
