@@ -1,10 +1,10 @@
 # Libraries for creating GUI
 from tkinter import *
-from tkinter import messagebox
 from tkinter import filedialog
+from tkcalendar import *
 
-# Canvas For imposing matplotlib graph with tkinter gui.
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  
+# Canvas For imposing matplotlib graph and toolbar with tkinter gui.
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg , NavigationToolbar2Tk 
 
 # Libraries for recording voice and processing
 import pyaudio
@@ -15,322 +15,563 @@ import os
 import Swara_Backend
 import Swara_Database
 
+#Functionality Class
 
-#Function for clearing Win
-def clearWin(window):
-      for widgets in window.winfo_children():
-          widgets.destroy()
+class Functionality: 
+    #Function for clearing Win
 
-#Function for taking File Input 
-def fileInput(b_x,b_y):
-        file = filedialog.askopenfile(mode='r', filetypes=[('Music Files', '*.wav')])
-        
-        if file:
-                filePath = os.path.abspath(file.name)
-                path = filePath
-                file_loc_l = Label(win_root, text=str(filePath),font = "raleway 10 bold", bg="paleturquoise")
-                file_loc_l.place(x = b_x, y = (b_y + 30))                        
-                return path
-        
-#Function for Recording Audio
-def recording(sec_e):
-        sec = sec_e.get()
-        FRAMES_PER_BUFFER = 3200
-        FORMAT = pyaudio.paInt16
-        CHANNELS = 1
-        RATE = 16000
+    def clearWin(self,window):
+        for widgets in window.winfo_children():
+            widgets.destroy()
+
+    #Function for taking File Input 
+    def fileInput(self,win,evar,b_x,b_y):
+            self.file = filedialog.askopenfile(mode='r', filetypes=[('Music Files', '*.wav')])
+            
+            if self.file:
+                    self.filePath = os.path.abspath(self.file.name)
+                    self.path = self.filePath
+                    self.fileLocationEntry = Entry(win ,textvar = evar,font = "raleway 10 bold", bg="#1b191a",bd = 0,width = 200)
+                    self.fileLocationEntry.delete(first = 0,last = 500)
+                    self.fileLocationEntry.insert(0,f"{self.filePath}")
+                    self.fileLocationEntry.config(state = "disabled")
+                    self.fileLocationEntry.place(x = b_x, y = (b_y + 30))                        
+                    return self.path
+
+    #Function for recording Audio
+    def recording(self,win,invervalSecEntry):
+        self.sec = invervalSecEntry.get()
+        self.FRAMES_PER_BUFFER = 3200
+        self.FORMAT = pyaudio.paInt16
+        self.CHANNELS = 1   
+        self.RATE = 16000
 
         # Calling Python library to record audio
-        audio = pyaudio.PyAudio()
+        self.audio = pyaudio.PyAudio()
 
-        record = audio.open(
-                format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
+        self.record = self.audio.open(
+                format=self.FORMAT,
+                channels=self.CHANNELS,
+                rate=self.RATE,
                 input=True,
-                frames_per_buffer=FRAMES_PER_BUFFER
+                frames_per_buffer=self.FRAMES_PER_BUFFER
         )
-          
+        
         # Creates a label when recording completes.
-        ch2 = Label(win_root , text= "Your voice is Recorded!" , bg="paleturquoise" ,font= ("Posterama  16 bold"))
-        ch2.place(x= 140 , y = 220)
+        self.ch2 = Label(win , text= "Your voice is Recorded!" ,bg = "#141a1a" , fg="#f3b32d" ,font= ("Posterama  16 bold"))
+        self.ch2.place(x= 140 , y = 220)
 
         # Defines recording interval by taking input from user.
-        seconds = float(sec)
-        frames = []
-        second_tracking = 0
-        second_count = 0
-        for i in range(0, int(RATE/FRAMES_PER_BUFFER*seconds)):
-                ch3 = Label(win_root , textvariable = f'Time Left: {seconds - second_count} seconds' , bg="paleturquoise")
-                ch3.place(x= 30 , y = 130)
-                data = record.read(FRAMES_PER_BUFFER)
-                frames.append(data)
-                second_tracking += 1
-                second_count += 1
+        self.seconds = float(self.sec)
+        self.frames = []
+        self.second_tracking = 0
+        self.second_count = 0
+        for i in range(0, int(self.RATE/self.FRAMES_PER_BUFFER*self.seconds)):
+                self.ch3 = Label(win, textvariable = f'Time Left: {self.seconds - self.second_count} seconds' , bg="#1b191a")
+                self.ch3.place(x= 30 , y = 130)
+                self.data = self.record.read(self.FRAMES_PER_BUFFER)
+                self.frames.append(self.data)
+                self.second_tracking += 1
+                self.second_count += 1
 
 
-        record.stop_stream()
-        record.close()
-        audio.terminate()
+        self.record.stop_stream()
+        self.record.close()
+        self.audio.terminate()
 
-        # Stores recorded audio file
+        # Stores recorded audio file.
+
         specimen = wave.open('Audio/user.wav', 'wb')
-        specimen.setnchannels(CHANNELS)
-        specimen.setsampwidth(audio.get_sample_size(FORMAT))
-        specimen.setframerate(RATE)
-        specimen.writeframes(b''.join(frames))
+        specimen.setnchannels(self.CHANNELS)
+        specimen.setsampwidth(self.audio.get_sample_size(self.FORMAT))
+        specimen.setframerate(self.RATE)
+        specimen.writeframes(b''.join(self.frames))
         specimen.close()
 
+# Button bg - #141a1a (Lighter Black)
+# Button Text - deeppink 
+# bg - #1b191a (Black)
+# fontcolour - #f3b32d (Golden Colour)
 
 #-------------------- Login Win -------------------- #
-def loginWin():
-        clearWin(win_root)
 
-        win_root.geometry("260x200")
+def loginWin():
+        functionality.clearWin(winRoot)
+
+        winRoot.geometry("260x200")
+        winRoot.config(bg = "#1b191a")
 
         #Login Win Header Frame
-        login_h_fr=Frame(win_root, bg="paleturquoise" )
-        login_h_fr.pack(side=TOP, fill = X)
+        loginHeaderFrame = Frame(winRoot, bg="#1b191a",bd = 2)
+        loginHeaderFrame.pack(side=TOP, fill = X)
 
         #Login Label
-        login_text=Label(login_h_fr, text="LOGIN" ,bg="paleturquoise", fg = "red", font= ("Posterama  20 bold"), padx = 200 , pady = 10)
-        login_text.pack()
+        loginLabel = Label(loginHeaderFrame, text="LOGIN" ,bg="#1b191a", fg = "#f3b32d", font= ("Posterama  20 bold"), padx = 200 , pady = 10)
+        loginLabel.pack()
 
         #User
-        user = Label(win_root , text= "Username ID  :   ", bg="paleturquoise")
+        user = Label(winRoot , text= "Username ID  :   ", bg="#1b191a" , fg="#f3b32d")
         user.place(x= 30 , y = 58)
 
-        userEntry = Entry(win_root , textvariable =uservalue )
+        userEntry = Entry(winRoot , textvariable =userValue )
         userEntry.place(x=120, y = 58)
 
         #Password
-        password = Label(win_root , text= "Password : ", bg="paleturquoise")  
+        password = Label(winRoot , text= "Password : ", bg="#1b191a" , fg="#f3b32d")  
         password.place(x = 30,y=80)
 
-        passEntry = Entry(win_root , textvariable = passvalue, show = "*")
+        passEntry = Entry(winRoot , textvariable = passValue, show = "*")
         passEntry.place(x=120 ,y = 80)
         
         #Login Button
-        log_b = Button(win_root, fg="red", text = "Login"  ,font = "raleway 12 bold", command = lambda: Swara_Database.database(userEntry,passEntry,chooseWin)) #Checks and verify the login details
-        log_b.place(x = 160, y = 130)
+        login = lambda:database.login(userEntry,passEntry,chooseWin)  
+        closeButton = Button(winRoot, fg="deeppink", bg = "#141a1a", text = "Login"  ,font = "raleway 12 bold", command = login) #Checks and verify the login details
+        closeButton.place(x = 160, y = 130)
 
         #Create User Button
-        c_user_b = Button(win_root, fg = "red", text = "Sign - Up", font = " raleway 12 bold" ,command= createUserWin)
-        c_user_b.place(x = 30, y = 130)
+        createUserButton = Button(winRoot,fg = "deeppink",bg = "#141a1a", text = "Sign - Up", font = "raleway 12 bold" ,command= createUserWin)
+        createUserButton.place(x = 30, y = 130)
 
-# Message box
+
+#----------------------------Sign Up window----------------------#
+
 def createUserWin():
-        messagebox.showinfo("Work In Progress","This Section of Program is still Work in Progress")
+
+    global signUpWin
+
+    #Window Properties
+    signUpWin = Toplevel(winRoot)
+    signUpWin.geometry("410x500")
+    signUpWin.resizable(False,False)
+    signUpWin.title("Sign - Up")    
+    signUpWin.configure(bg="#1b191a")  
+    signUpWin.grab_set()
+
+    #Heading Frame
+    signUpHeaderFrame = Frame(signUpWin , bg="#1b191a" ,bd=10)
+    signUpHeaderFrame.grid(row=0,column=0)
+    createAccountLabel = Label(signUpHeaderFrame ,text="Create Account",font=("Times 20 bold") , bg="#1b191a" , fg="#f3b32d")
+    createAccountLabel.grid(padx=100,pady=2)
+
+    #Details Frame
+    detailsFrame = Frame(signUpWin , bg="#1b191a")
+    detailsFrame.grid(row=1,column=0)
+
+    #Mobile No.
+    mobileNumberLabel = Label(detailsFrame,text="Mobile Number : " , bg="#1b191a" , fg="#f3b32d")      
+    mobileNumberLabel.grid(row=0,column=0,padx=5,pady=10)
+    userCreateMobile.set("")
+    
+    mobileNumberEntry = Entry(detailsFrame,width=20,justify="center",textvariable=userCreateMobile)
+    mobileNumberEntry.config(state="normal")
+    mobileNumberEntry.grid(row=0,column=1)
+
+    #E-mail
+    emailLabel= Label(detailsFrame,text="Email Address : " , bg="#1b191a", fg="#f3b32d")
+    emailLabel.grid(row=1,column=0,padx=5,pady=10,sticky='w')
+    userCreateEmail.set("")
+    
+    emailEntry= Entry(detailsFrame,width=20,justify="center",textvariable=userCreateEmail)
+    emailEntry.config(state="normal")
+    emailEntry.grid(row=1,column=1)
+
+    #Function for Enabling Rest of the Entry boxes
+    def enableEntry():
+        firstNameEntry.config(state = "normal")
+        lastNameEntry.config(state = "normal")
+        usernameEntry.config(state = "normal")
+        passwordEntry.config(state = "normal")
+        choose.config(state = "normal")
+        sumbitButton.config(state = "normal")
+        # checkButton.destroy()
+
+    #Check Button
+    checkCmd = lambda : database.regCheck(mobileNumberEntry,emailEntry,enableEntry)
+    checkButton = Button(detailsFrame,text="Check", command = checkCmd ,bg = "#141a1a",  fg="deeppink" ,  font= ("times  10 bold"))
+    checkButton.grid(row=1,column=2,padx=10)
+    
+    #Username
+    usernameLabel = Label(detailsFrame,text="Username : " , bg="#1b191a", fg="#f3b32d")
+    usernameLabel.grid(row=2,column=0,padx=5,pady=10,sticky='w')
+    userCreateUsername.set("")
+    
+    usernameEntry = Entry(detailsFrame,width=20,justify="center",textvariable=userCreateUsername)
+    usernameEntry.grid(row=2,column=1)
+    usernameEntry.config(state="disabled")
+
+    #Password
+    passwordLabel = Label(detailsFrame,text="Password : " , bg="#1b191a" , fg="#f3b32d")
+    passwordLabel.grid(row=3,column=0,padx=5,pady=10,sticky='w')
+    userCreatePassword.set("")
+    
+    passwordEntry = Entry(detailsFrame,width=20,justify="center",show = "*",textvariable=userCreatePassword)
+    passwordEntry.grid(row=3,column=1)
+    passwordEntry.config(state="disabled")
+
+    #First Name
+    firstNameLabel = Label(detailsFrame,text="First Name : " , bg="#1b191a" , fg="#f3b32d")
+    firstNameLabel.grid(row=4,column=0,padx=5,pady=10,sticky='w')
+    userCreateFirstName.set("")
+    
+    firstNameEntry = Entry(detailsFrame,width=20,justify="center",textvariable=userCreateFirstName)
+    firstNameEntry.grid(row=4,column=1)
+    firstNameEntry.config(state="disabled")
+
+    #Last Name
+    lastNameLabel = Label(detailsFrame,text="Last Name : " , bg="#1b191a" , fg="#f3b32d")
+    lastNameLabel.grid(row=5,column=0,padx=5,pady=10,sticky='w')
+    userCreateLastName.set("")
+    
+    lastNameEntry = Entry(detailsFrame,width=20,justify="center",textvariable=userCreateLastName)
+    lastNameEntry.grid(row=5,column=1)
+    lastNameEntry.config(state="disabled")
+
+    #DOB
+    dobLabel = Label(detailsFrame,text="Date Of Birth : " , bg="#1b191a" , fg="#f3b32d")
+    dobLabel.grid(row=6,column=0,padx=5,pady=10,sticky='w',columnspan=2)
+    
+    dateLabel = Label(detailsFrame , bg="#1b191a")
+    dateLabel.grid(row=6,column=1,padx=5,pady=10)
+    userCreateDOB.set("")          
+
+    #Function for Choosing Date
+    def choose_date():
+        datePicker = Toplevel(signUpWin)
+        datePicker.resizable(False,False)
+        datePicker.title("Date Picker")
+        datePicker.grab_set()
+        dobEntry = Calendar(datePicker,selectmode='day',year=2000,month=1,day=1)                
+        dobEntry.pack()
+
+        #Function for Saving chosen Date
+        def picked():
+            dateLabel.config(text=dobEntry.get_date(), fg="#f3b32d")
+            userCreateDOB.set(dobEntry.get_date())                    
+            datePicker.destroy()
         
+        #Ok Button
+        ok = Button(datePicker,text="OK",bd=5,command=picked , fg= "deeppink" ,bg = "#141a1a")
+        ok.pack(pady=10)           
+
+    #Choose Button
+    choose = Button(detailsFrame,text="Choose Date",command=choose_date, bg = "#141a1a", fg="deeppink", font= ("times  10 bold"))
+    choose.grid(row=6,column=2)
+    choose.config(state="disabled")
+    choose.config(state="disabled")
+
+   
+    #Sumbit Button
+    submit = lambda : database.regSumbit(signUpWin, userCreateEmail, userCreateMobile,userCreateUsername,userCreatePassword,userCreateFirstName,userCreateLastName,userCreateDOB ) 
+    sumbitButton = Button( signUpWin , text="SUBMIT",width=10,bd=6,font= ("Posterama  20 bold"), command = submit , fg = "deeppink", bg = "#141a1a")
+    sumbitButton.config(state="disabled")
+    sumbitButton.place(x=100 , y=360)
+
+
+    #Function for going back to Login Win
+    def back():
+        signUpWin.destroy()
+
+    #Back Button
+    backCreateUserButton = Button(signUpWin ,text="<--- Go Back to Login",bd=6,command=back , fg = "deeppink" ,bg = "#141a1a")
+    backCreateUserButton.place( x= 6 , y= 450 )
+
+
 #-----------------Choose option window---------------#
+
 def chooseWin():
-        clearWin(win_root)
-        win_root.geometry("280x200")
+
+        global commandWin
+
+        #Command Window Properties
+        commandWin = Toplevel(winRoot)
+        commandWin.grab_set() 
+        commandWin.configure(bg="#1b191a")
+        commandWin.resizable(False,False)
+        commandWin.title("Option Window")
+        commandWin.geometry("280x200")
 
         #Command Win Header Frame
-        ch_h_fr=Frame(win_root, bg="paleturquoise" )
-        ch_h_fr.pack(side=TOP, fill = X)
+        recordHeaderFrame=Frame(commandWin, bg="#1b191a" )
+        recordHeaderFrame.pack(side=TOP, fill = X)
 
         #Command Label
-        ch_text=Label(ch_h_fr, text="COMMAND" ,bg="paleturquoise", fg = "red", font= ("Posterama  20 bold"), padx = 200 , pady= 20)
-        ch_text.pack()
+        recordLabel=Label(recordHeaderFrame, text="COMMAND" ,bg="#1b191a", fg="#f3b32d", font= ("Posterama  20 bold"), padx = 200 , pady= 20)
+        recordLabel.pack()
         
-        #Command Button
-        rec_b = Button(win_root, fg="red", text = "Record Audio"  ,font = "raleway 12 bold", command = recordWin )
-        rec_b.place(x = 140, y = 130)
+        #Upload Button
+        uploadCndButton = Button(commandWin, fg="deeppink" , bg = "#141a1a" ,text = "Upload File", font = " raleway 12 bold" , command = fileWin)
+        uploadCndButton.place(x = 20, y = 90)
 
-        #Create User Button
-        up_b = Button(win_root, fg = "red", text = "Upload File", font = " raleway 12 bold" , command = fileWin)
-        up_b.place(x = 20, y = 130)
+        #Record Button
+        recordCndButton = Button(commandWin , fg="deeppink",  bg = "#141a1a", text = "Record Audio"  ,font = "raleway 12 bold", command = recordWin )
+        recordCndButton.place(x = 140, y = 90)
+
+        #Function for going back to Login Window
+
+        def back():
+                commandWin.destroy()
+
+        #Back Button
+        backChooseButton=Button(commandWin, text="<--- Go Back to Login",bd=6,command=back , fg="deeppink",  bg = "#141a1a")
+        backChooseButton.place(x=6 , y=160 )  
+
 
 #-----------------Record audio window---------------#
+
 def recordWin():
-        global orgMusic_file_loc
-        global user_file_loc
+    
+    global recordingWin
+    global orgFileLoc
+    global userFileLoc
 
-        user_file_loc = "Audio/user.wav"
+    userFileLoc = ""
 
-        clearWin(win_root)
-        win_root.geometry("520x450")
+    #Record Win Configurations
+    recordingWin = Toplevel(commandWin) 
+    recordingWin.grab_set()
+    recordingWin.geometry("520x450")
+    recordingWin.configure(bg="#1b191a")
+    recordingWin.resizable(False,False)
+    recordingWin.title("Record Audio")
 
-        #Command Win Header Frame
-        ch_h_fr=Frame(win_root, bg="paleturquoise" )
-        ch_h_fr.pack(side=TOP, fill = X)
-         
-        #Command Label
-        ch_text=Label(ch_h_fr, text="Record Audio" ,bg="paleturquoise", fg = "red", font= ("Posterama  25 bold"), padx = 200 , pady= 10)
-        ch_text.pack()
+    # User Recorded file path
+    cwd = os.getcwd()
+    userFileLoc = cwd + r"\Audio\user.wav"
 
-        # Original File upload label
-        org_music_l = Label(win_root , text= "Original File : " , bg="paleturquoise",  font= ("Posterama  12 bold"))
-        org_music_l.place(x= 35 , y= 80)
-        orgMusic_file_loc = fileInput(20,80)
-        org_file_but = Button(win_root , text= "Browse",command=lambda : fileInput(120,140))
-        org_file_but.place(x= 165 , y= 80)
+
+    #Command Win Header Frame
+    recordHeaderFrame=Frame(recordingWin, bg="#1b191a" )
+    recordHeaderFrame.pack(side=TOP, fill = X)
         
-        #Interval input label
-        interval_l = Label(win_root , text= "Enter recording interval : \n(in Seconds)  " , bg="paleturquoise",  font= ("Posterama  12 bold"))
-        interval_l.place(x= 35 , y= 150)
+    #Command Label
+    recordLabel=Label(recordHeaderFrame, text="Record Audio" ,bg="#1b191a", fg="#f3b32d", font= ("Posterama  25 bold"), padx = 200 , pady= 10)
+    recordLabel.pack()
 
-        # Interval input entry box
-        sec_e = Entry(win_root,font = "Posterama 15 bold", width = 10)
-        sec_e.place(x= 260 , y= 150)
+    # Original File upload label
+    orgRecFileLabel = Label(recordingWin , text= "Original File : " , bg="#1b191a",  fg="#f3b32d", font= ("Posterama  12 bold"))
+    orgRecFileLabel.place(x= 20 , y= 80)
+    orgRecFileLoc = functionality.fileInput(recordingWin,orgFileLocEntry,20,80)
+    orgRecFileButton = Button(recordingWin , bg = "#141a1a" , fg= "deeppink",  text= "Browse",command = orgRecFileLoc)#(120,140))
+    orgRecFileButton.place(x= 165 , y= 80)
+    
+    #Interval input label
+    invervalLabel = Label(recordingWin , text= "Enter recording interval : \n(in Seconds)  " , fg="#f3b32d", bg="#1b191a",  font= ("Posterama  12 bold"))
+    invervalLabel.place(x= 35 , y= 150)
+
+    # Interval input entry box
+    invervalSecEntry = Entry(recordingWin,font = "Posterama 15 bold", width = 10)
+    invervalSecEntry.place(x= 260 , y= 150)
+    
+
+    # Record Audio button
+    recordButton = Button(recordingWin, text="Record Audio",bg = "#141a1a" , fg= "deeppink"  , command= lambda : functionality.recording(recordingWin,invervalSecEntry) , font = " arial 15 bold", width = 14, height= 2,
+                relief = RAISED) 
+    recordButton.place(x=170 , y=260)
+
+    # Plot and compare button
+    nextButton = Button(recordingWin, text ="Plot and Compare", command=graphWin ,font = " arial 15 bold", width = 16, height= 2
+                , bg = "#141a1a" , fg= "deeppink"  , relief = RAISED )
+    nextButton.place(x= 160 , y= 350)
+    
+    #Function for going back to Command Window
+    def back():
+        recordingWin.destroy()
         
+    #Back Button
+    backRecButton=Button(recordingWin ,text="<--- Go Back", bg = "#141a1a" , fg= "deeppink" ,bd=6,command=back )
+    backRecButton.place(x= 10 , y=400)
+  
 
-        # Record Audio button
-        record_button = Button(win_root, text="Record Audio", command= lambda : recording(sec_e) , font = " arial 15 bold", width = 14, height= 2,
-                  relief = RAISED,fg="red" ) 
-        record_button.place(x=170 , y=260)
+#------------------ File Input Win -------------------#
 
-        # Plot and compare button
-        next_button = Button(win_root, text ="Plot and Compare", command=graphWin ,font = " arial 15 bold", width = 16, height= 2
-                  ,fg="red" , relief = RAISED )
-        next_button.place(x= 160 , y= 350)
-        
-
-#---------------- File Input Win -------------------
 def fileWin():
-        global user_file_loc
-        global orgMusic_file_loc
-        clearWin(win_root)
 
-        win_root.geometry("500x270")
+        global fileInputWin
+
+        #File Input Win Configuration        
+        fileInputWin = Toplevel(commandWin)
+        fileInputWin.grab_set() 
+        fileInputWin.configure(bg="#1b191a")
+        fileInputWin.resizable(False,False)
+        fileInputWin.title("File Input")
+        fileInputWin.geometry("600x270")
+        
+        # Defining file path variables
+        global userFileLoc
+        global orgFileLoc
 
         #File Header Frame
-        file_h_fr=Frame(win_root, bg ="paleturquoise" )
-        file_h_fr.pack(side=TOP, fill = X)
+        fileHeaderFrame=Frame(fileInputWin, bg ="#1b191a" )
+        fileHeaderFrame.pack(side=TOP, fill = X)
 
         #Header Text
-        file_h_text=Label(file_h_fr, text="File Input" ,bg="paleturquoise", fg = "red",
+        fileHeaderLabel=Label(fileHeaderFrame, text="File Input" ,bg="#1b191a", fg="#f3b32d",
                           font= ("Posterama  20 bold"), padx = 200 , pady = 10)
-        file_h_text.pack()
+        fileHeaderLabel.pack()
 
         #Instruction Text
-        inst_l = Label(win_root,text="Input your recorded music file and Original Music File Here.",
-                        bg="paleturquoise" , fg = "Red", font = ("Posterama  10 bold") )
-        inst_l.place(x = 50,y = 50)
+        instructionLabel = Label(fileInputWin,text="Input your recorded music file and Original Music File Here.",
+                        bg="#1b191a" , fg="#f3b32d", font = ("Posterama  12 bold") )
+        instructionLabel.pack()
 
         #User File
-        user_file_l = Label(win_root , text= "Recorded File :   " , bg="paleturquoise")
-        user_file_l.place(x= 30 , y = 85)
-        user_file_but = Button(win_root , text= "Browse",command=lambda : fileInput(30,85))
-        user_file_loc = fileInput(30,85)
-        user_file_but.place(x=140, y = 85)
+        userFileLabel = Label(fileInputWin , text= "Recorded File :   " , bg="#1b191a" , fg="#f3b32d",  font= ("times  12  bold"))
+        userFileLabel.place(x= 30 , y = 85)
+        userFileButton = Button(fileInputWin ,bg = "#141a1a", fg="deeppink" , text= "Browse",command=lambda : functionality.fileInput(fileInputWin,userFileLocEntry,30,85))
+        userFileLoc = functionality.fileInput(fileInputWin,userFileLocEntry,30,85)
+        userFileButton.place(x=140, y = 85)
 
         #Original File
-        org_music_l = Label(win_root , text= "Original File : " , bg="paleturquoise")  
-        org_music_l.place(x = 30,y=140)
-        org_file_but = Button(win_root , text= "Browse",command=lambda : fileInput(30,140))
-        orgMusic_file_loc = fileInput(30,140)
-        org_file_but.place(x=140, y = 140)
+        orgFileLabel = Label(fileInputWin , text= "Original File : " ,  fg="#f3b32d", bg="#1b191a" , font= ("times  12 bold"))
+        orgFileLabel.place(x = 30,y=148)
+        orgFileButton = Button(fileInputWin , fg="deeppink"  ,bg = "#141a1a", text= "Browse",command=lambda : functionality.fileInput(fileInputWin,orgFileLocEntry,30,148))
+        orgFileLoc = functionality.fileInput(fileInputWin,orgFileLocEntry,30,148)
+        orgFileButton.place(x=140, y = 148)
 
         
         # Plot and Compare button
-        plot_and_compare_button = Button(win_root, text="Plot and Compare",command=graphWin)
-        plot_and_compare_button.place(x=120, y = 220)
+        plotAndCompareButton = Button(fileInputWin, bg = "#141a1a" , fg= "deeppink" , text="Plot and Compare",command=graphWin)
+        plotAndCompareButton.place(x=240, y = 220)
         
+
+        #Function for going back to Command Window
+        def back():
+            fileInputWin.destroy()
+
+        #Back Button
+        backFileButton=Button( fileInputWin ,text="<--- Go Back", bg = "#141a1a" , fg= "deeppink" ,bd=6,command=back )
+        backFileButton.place(x=6, y=230)
+            
 
 #---------------- Graph Input Win ------------------- #
+
 def graphWin():
-        global user_file_loc
-        global orgMusic_file_loc              
+
+    # Defining File path Variables
+    global userFileLoc
+    global orgFileLoc
+    global grpWin
+
+    #Configuring Main Window
+    grpWin = Toplevel(commandWin) 
+    grpWin.grab_set()
+    grpWin.geometry("450x460")
+    grpWin.configure(bg="grey94")
+    grpWin.resizable(False,False)
+    grpWin.geometry("1500x760") 
+    grpWin.title("Graph Input")
+
+    #Graph Window Header Frame
+    graphHeaderFrame=Frame(grpWin, bg="grey94" )
+    graphHeaderFrame.pack(side=TOP, fill = X)
+
+    # Label for graph Window
+    graphLabel=Label(graphHeaderFrame, text="GRAPH" , bg="grey94" ,  fg="#f3b32d", font= ("Posterama  40"), pady= 10)
+    graphLabel.pack()
+    
+    #Label to show which file has higher pitch
+    resultLabel = Label(grpWin, fg="deeppink", bg= "grey94",  font= ("Posterama  20"))
+    resultLabel.pack()               
+
+    #Code execution and selection.
+    try:    
+            fig = backend.plotAudioFiles(grpWin,orgFileLocEntry,userFileLocEntry,userFileLoc) 
+            backend.comparison(resultLabel)
+
+    except:
+            fig = backend.plotAudioFiles(grpWin,orgFileLocEntry,userFileLocEntry,userFileLoc) 
+
+
+    #Placing  Matplotlib Graph in Tkinter GUI Window using canvas
+
+    canvas = FigureCanvasTkAgg(fig, master = grpWin)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+    
+    #Placing  Matplotlib Graph Toolbar in Tkinter GUI Window using canvas
+    toolbar = NavigationToolbar2Tk(canvas , grpWin)
+    toolbar.update()
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
         
-        #Configuring Main Window
-        clearWin(win_root)
-        win_root.geometry("1500x700") 
-        win_root.configure(bg="paleturquoise")
-        win_root.title("Graph Input")
+    #Function for going back to Login Win
+    def back():
+        grpWin.destroy()
 
-        #Graph Window Header Frame
-        grp_h_fr=Frame(win_root, bg="paleturquoise" )
-        grp_h_fr.pack(side=TOP, fill = X)
-
-        # Label for graph Window
-        grp_text=Label(grp_h_fr, text="GRAPH" , bg="paleturquoise" , fg = "red", font= ("Posterama  40"), pady= 10)
-        grp_text.pack()
+    #Back Button
+    backButton=Button(grpWin ,text="<--- Go Back", bg = "white" , fg= "deeppink" ,bd=6,command=back )
+    backButton.place(x=660, y= 720 )
         
-        #Label to show which file has higher pitch
-        result_text = Label(win_root, text="" , bg="paleturquoise" ,fg = "green",  font= ("Posterama  20"))
-        result_text.pack()               
 
-
-        # Creating the graph holding frame
-        grpframe = Frame(win_root , bg ="paleturquoise")
-        grpframe.pack(side=LEFT)
-        
-        #Code execution and selection.
-        try:    
-                fig = Swara_Backend.plot_audio_files(user_file_loc,orgMusic_file_loc) 
-                Swara_Backend.similarity_and_pitch(result_text,user_file_loc,orgMusic_file_loc)
-
-        except:
-                fig = Swara_Backend.plot_audio_files(user_file_loc,orgMusic_file_loc) 
-
-
-        #Placing Graph in Tkinter GUI Window using canvas
-        canvas = FigureCanvasTkAgg( fig, master=grpframe)
-        canvas.draw()
-        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=2)
-               
-        # Creating Close Button    
-        log_b = Button(win_root, fg="red", text = "CLOSE"  ,font = "raleway 12 bold", command = ackWin)
-        log_b.place(x=860, y=660)
-
-# ---------------------- Acknowledgement Window ----------------------------------
-def ackWin():
-        clearWin(win_root)
-        win_root.geometry("400x300")
-        win_root.title("Acknowledgement")
+# ---------------------- Acknowledgement Window ------------------------#
+    def ackWin():
+            
+        functionality.clearWin(grpWin)
+        grpWin.geometry("400x300")
+        grpWin.title("Acknowledgement")
 
         # Graph Window Header Frame
-        ack_h_fr = Frame(win_root, bg="paleturquoise")
-        ack_h_fr.pack( fill=X)
-        
+        ackHeaderFrame = Frame(grpWin, bg="#1b191a")
+        ackHeaderFrame.pack(fill=X)
 
         # Thank You Label for Acknowledgement Window
-        thanks_l = Label(ack_h_fr, text="Thank You!!!\n\n\nFor using our software." , 
-                         bg="paleturquoise", fg="red", font=("Posterama  20") , pady =60)
-        thanks_l.pack()
+        thanksLabel = Label(ackHeaderFrame, text="Thank You!!!\n\n\n\nFor using our software." , 
+                        bg="#1b191a", fg="#f3b32d", font=("Posterama  20") , pady =60)
+        thanksLabel.pack()
 
-        # Message box
-        messagebox.showinfo("Work In progress","This Program is still under development.")    
+        winRoot.destroy()
+
+    # Creating Close Button    
+    closeButton = Button(grpWin, bg = "white" , fg= "deeppink" , text = "CLOSE"  ,font = "raleway 12 bold", command = ackWin)
+    closeButton.place(x=780, y=720)
 
 
-# --------------- Main Window --------------------- #
+# ------------------- Main Window ---------------------- #
 
+#Windows 
+winRoot = Tk() 
+signUpWin = None
+grpWin = None
 
-#Window Properties
-win_root = Tk() 
-win_root.geometry("450x460")
-win_root.configure(bg="paleturquoise")
-win_root.resizable(False,False)
-win_root.title("Swara")
+#Main Window Properties
+winRoot.geometry("460x450")
+winRoot.resizable(False,False)
+winRoot.title("Swara")
 
-#Global Variables
-user_file_loc = ""
-orgMusic_file_loc = ""
+# Global Variables
+userFileLoc = ""
+orgFileLoc = ""
 
-uservalue = StringVar()
-passvalue = StringVar()
+userFileLocEntry = StringVar()
+orgFileLocEntry = StringVar()
 
-#Welcome Text frame
-wel_fr=Frame(win_root, bg="paleturquoise" )
-wel_fr.pack(side=TOP, fill = X)
+#Variables for storing Login details 
+userValue = StringVar()
+passValue = StringVar()
 
-#Welcome Label
-wel_text=Label(wel_fr, bg = "paleturquoise" , text="SWARA", fg = "red", font= ("Posterama  40 bold"), padx = 200 , pady=10)
-wel_text.pack()
+#Variables for storing Signup details
+userCreateMobile= StringVar()
+userCreateEmail= StringVar()
+userCreateUsername= StringVar()
+userCreatePassword= StringVar()
+userCreateFirstName= StringVar()
+userCreateLastName= StringVar()
+userCreateDOB= StringVar()
+
+#Objects
+database = Swara_Database.Database()
+backend = Swara_Backend.Backend()
+functionality = Functionality()
+
 
 #Import image
-sw_photo = PhotoImage(file="Images\logo.png")
-sw_image = Label(image=sw_photo,bg = "paleturquoise")
-sw_image.place(x = 230,y = 200,anchor="center")
-
+swaraLogo = PhotoImage(file=r"Images\front.png")
+swaraImageLabel = Label(image=swaraLogo)
+swaraImageLabel.pack(anchor="center" )
 
 #Start Button
-start_b = Button(win_root, text = "START",font = " arial 20 bold", width = 10, height= 2, bd = 5 
-                  ,fg="red" , command =  loginWin)
-start_b.place(x = 230,y = 380,anchor='center')
+startButtonImg = PhotoImage(file = r"Images\btn.png")
+startButton = Button(winRoot,image = startButtonImg   , fg="red" , bg = "#1b191a",  command =  loginWin , relief = "flat") 
+startButton.place(x = 82 ,y = 20)
 
 # Creates a loop. To re-execute tkinter gui again and again.
-win_root.mainloop()
+winRoot.mainloop()
